@@ -1,0 +1,27 @@
+{
+  "mcpServers": {
+    "memory": {
+      "command": "cmd",
+      "args": ["/c", "npx", "-y", "@modelcontextprotocol/server-memory"]
+    },
+    "filesystem": {
+      "command": "cmd",
+      "args": ["/c", "npx", "-y", "@modelcontextprotocol/server-filesystem", "C:/Users/kill1"]
+    },
+    "sequential-thinking": {
+      "command": "cmd",
+      "args": ["/c", "npx", "-y", "@modelcontextprotocol/server-sequential-thinking"]
+    },
+    "postgres": {
+      "command": "cmd",
+      "args": ["/c", "npx", "-y", "@modelcontextprotocol/server-postgres", "postgresql://localhost:5432/cinema_api"],
+      "env": {
+        "DATABASE_URL": "postgresql://localhost:5432/cinema_api"
+      }
+    },
+    "openapi": {
+      "command": "cmd",
+      "args": ["/c", "npx", "-y", "@janwilmake/openapi-mcp-server"]
+    }
+  }
+} 

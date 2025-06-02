@@ -1,0 +1,44 @@
+/* Cinema Paradise Styles */
+
+/* Gradient backgrounds */
+.gradient-bg {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.cinema-theme {
+    background: linear-gradient(45deg, #1a1a2e, #16213e, #0f3460);
+}
+
+/* Movie card animations */
+.movie-card-hover {
+    transition: all 0.3s ease;
+}
+
+.movie-card-hover:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+}
+
+/* Smooth transitions */
+* {
+    transition-property: transform, opacity, box-shadow;
+    transition-timing-function: ease-in-out;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #374151;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #6b7280;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+}

@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cinema API Debug</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #111;
+            color: #fff;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #333;
+            border-radius: 5px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            margin: 5px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        input {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #333;
+            background: #222;
+            color: #fff;
+        }
+        .result {
+            background: #222;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 3px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .error {
+            background: #722;
+        }
+        .success {
+            background: #272;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎬 Cinema API Debug</h1>
+        
+        <div class="section">
+        <h2>🔍 Проверка подключения</h2>
+        <button onclick="testHealth()">Проверить Health</button>
+        <button onclick="populateDemo()">Загрузить демо данные</button>
+        <div id="health-result" class="result"></div>
+        </div>
+        
+        <div class="section">
+        <h2>🔐 Авторизация</h2>
+        <div>
+            <input type="text" id="username" placeholder="Имя пользователя" value="admin">
+            <input type="password" id="password" placeholder="Пароль" value="admin123">
+            <button onclick="testLogin()">Войти</button>
+            <button onclick="testMe()">Проверить /auth/me</button>
+            <button onclick="logout()">Выйти</button>
+        </div>
+        <div id="auth-result" class="result"></div>
+        </div>
+        
+        <div class="section">
+        <h2>🎬 Фильмы</h2>
+        <button onclick="getMovies()">Получить фильмы</button>
+        <button onclick="getSessions()">Получить сеансы</button>
+        <div id="data-result" class="result"></div>
+        </div>
+        
+        <div class="section">
+        <h2>📊 Состояние</h2>
+        <div>
+            <strong>Токен:</strong> <span id="current-token">нет</span><br>
+            <strong>Пользователь:</strong> <span id="current-user">нет</span>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000';
+        
+        // Утилиты
+        function log(elementId, message, isError = false) {
+            const element = document.getElementById(elementId);
+            element.textContent = typeof message === 'string' ? message : JSON.stringify(message, null, 2);
+            element.className = `result ${isError ? 'error' : 'success'}`;
+            updateStatus();
+        }
+        
+        function updateStatus() {
+            const token = localStorage.getItem('token');
+            const user = localStorage.getItem('user');
+            
+            document.getElementById('current-token').textContent = token ? 'есть' : 'нет';
+            document.getElementById('current-user').textContent = user ? JSON.parse(user).username : 'нет';
+        }
+        
+        // API методы
+        async function makeRequest(method, url, data = null) {
+            try {
+                const config = {
+                    method,
+                    url: `${API_BASE}${url}`,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                };
+                
+                if (data) {
+                    config.data = data;
+                }
+                
+                const token = localStorage.getItem('token');
+                if (token) {
+                    config.headers.Authorization = `Bearer ${token}`;
+                }
+                
+                console.log('Отправляем запрос:', config);
+                const response = await axios(config);
+                console.log('Получен ответ:', response);
+                return response.data;
+            } catch (error) {
+                console.error('Ошибка запроса:', error);
+                throw error;
+            }
+        }
+        
+        async function testHealth() {
+            try {
+            const result = await makeRequest('GET', '/health');
+                log('health-result', result);
+            } catch (error) {
+                log('health-result', `Ошибка: ${error.message}`, true);
+            }
+        }
+        
+        async function populateDemo() {
+            try {
+            const result = await makeRequest('GET', '/demo/populate');
+                log('health-result', result);
+            } catch (error) {
+                log('health-result', `Ошибка: ${error.message}`, true);
+            }
+        }
+        
+        async function testLogin() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                console.log('🔐 Начинаем логин...');
+                
+                const result = await makeRequest('POST', '/auth/login', {
+                    username,
+                    password
+                });
+                
+                console.log('📋 Результат логина:', result);
+                
+                if (result.access_token) {
+                    localStorage.setItem('token', result.access_token);
+                    console.log('💾 Токен сохранен в localStorage');
+                    console.log('🔑 Токен:', result.access_token.substring(0, 50) + '...');
+                    
+                    // Получаем данные пользователя
+                    setTimeout(async () => {
+                        try {
+                            console.log('👤 Получаем данные пользователя...');
+                            const userResult = await makeRequest('GET', '/auth/me');
+                            console.log('✅ Данные пользователя:', userResult);
+                            
+                            document.getElementById('auth-result').innerHTML = `
+                                <div style="color: #28a745;">
+                                    <h4>✅ Успешная авторизация!</h4>
+                                    <p><strong>Пользователь:</strong> ${userResult.username} (${userResult.role})</p>
+                                    <p><strong>Email:</strong> ${userResult.email}</p>
+                                    <p><strong>Токен:</strong> ${result.access_token.substring(0, 50)}...</p>
+                                </div>
+                            `;
+                        } catch (userError) {
+                            console.error('❌ Ошибка получения пользователя:', userError);
+                            document.getElementById('auth-result').innerHTML = `
+                                <div style="color: #dc3545;">
+                                    <h4>⚠️ Токен получен, но ошибка при получении данных пользователя</h4>
+                                    <p><strong>Токен:</strong> ${result.access_token.substring(0, 50)}...</p>
+                                    <p><strong>Ошибка:</strong> ${userError.message}</p>
+                                    <pre>${JSON.stringify(userError, null, 2)}</pre>
+                                </div>
+                            `;
+                        }
+                    }, 100);
+                    
+                } else {
+                    document.getElementById('auth-result').innerHTML = `
+                        <div style="color: #dc3545;">
+                            <h4>❌ Нет токена в ответе</h4>
+                            <pre>${JSON.stringify(result, null, 2)}</pre>
+                        </div>
+                    `;
+            }
+            
+            } catch (error) {
+                console.error('❌ Ошибка логина:', error);
+                document.getElementById('auth-result').innerHTML = `
+                    <div style="color: #dc3545;">
+                        <h4>❌ Ошибка авторизации</h4>
+                        <p><strong>Сообщение:</strong> ${error.message}</p>
+                        <pre>${JSON.stringify(error, null, 2)}</pre>
+                    </div>
+                `;
+            }
+        }
+        
+        async function testMe() {
+            try {
+                const token = localStorage.getItem('token');
+                console.log('🔍 Проверяем токен из localStorage:', token ? token.substring(0, 50) + '...' : 'НЕТ ТОКЕНА');
+                
+                if (!token) {
+                    throw new Error('Токен не найден в localStorage');
+                }
+                
+            const result = await makeRequest('GET', '/auth/me');
+                console.log('✅ Данные пользователя:', result);
+                
+                document.getElementById('auth-result').innerHTML = `
+                    <div style="color: #28a745;">
+                        <h4>✅ Пользователь авторизован!</h4>
+                        <p><strong>Пользователь:</strong> ${result.username} (${result.role})</p>
+                        <p><strong>Email:</strong> ${result.email}</p>
+                        <p><strong>Токен существует:</strong> Да</p>
+                    </div>
+                `;
+                
+            } catch (error) {
+                console.error('❌ Ошибка /auth/me:', error);
+                
+                const token = localStorage.getItem('token');
+                document.getElementById('auth-result').innerHTML = `
+                    <div style="color: #dc3545;">
+                        <h4>❌ Ошибка /auth/me: ${error.message}</h4>
+                        <p><strong>Статус:</strong> ${error.status || 'неизвестно'}</p>
+                        <p><strong>Токен существует:</strong> ${token ? 'Да' : 'Нет'}</p>
+                        ${token ? `<p><strong>Токен:</strong> ${token.substring(0, 50)}...</p>` : ''}
+                        <pre>${JSON.stringify(error, null, 2)}</pre>
+                    </div>
+                `;
+            }
+        }
+        
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            log('auth-result', 'Выход выполнен');
+        }
+        
+        async function getMovies() {
+            try {
+                const result = await makeRequest('GET', '/movies');
+                log('data-result', result);
+            } catch (error) {
+                log('data-result', `Ошибка: ${error.message}`, true);
+        }
+        }
+        
+        async function getSessions() {
+            try {
+                const result = await makeRequest('GET', '/sessions');
+                log('data-result', result);
+            } catch (error) {
+                log('data-result', `Ошибка: ${error.message}`, true);
+            }
+        }
+        
+        // Инициализация
+        updateStatus();
+        
+        console.log('🔧 Debug страница загружена');
+    </script>
+</body>
+</html>

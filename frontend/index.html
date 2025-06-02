@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎬 Cinema Paradise - Лучший кинотеатр города</title>
+    
+    <!-- TailwindCSS для стилизации -->
+    <!-- ВНИМАНИЕ: CDN версия не для продакшена! Для продакшена используйте PostCSS plugin или Tailwind CLI -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React и ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- Babel для JSX в браузере -->
+    <!-- ВНИМАНИЕ: Babel трансформер не для продакшена! Прекомпилируйте JSX для продакшена -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Axios для API запросов -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    
+    <!-- Font Awesome для иконок -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Дополнительные стили -->
+    <link rel="stylesheet" href="css/styles.css">
+    
+    <style>
+        /* Дополнительная кастомизация TailwindCSS */
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .movie-card-hover {
+            transition: all 0.3s ease;
+        }
+        
+        .movie-card-hover:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+        
+        .glass-effect {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .cinema-theme {
+            background: linear-gradient(45deg, #1a1a2e, #16213e, #0f3460);
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+    <!-- React App контейнер -->
+    <div id="root"></div>
+    
+    <!-- API сервисы (загружается первым как обычный JS) -->
+    <script src="js/services/api.js"></script>
+    
+    <!-- Компоненты -->
+    <script type="text/babel" src="js/components/Header.js"></script>
+    <script type="text/babel" src="js/components/MovieCard.js"></script>
+    <script type="text/babel" src="js/components/SessionCard.js"></script>
+    <script type="text/babel" src="js/components/LoginModal.js"></script>
+    <script type="text/babel" src="js/components/BookingModal.js"></script>
+    <script type="text/babel" src="js/components/LoadingSpinner.js"></script>
+    <script type="text/babel" src="js/components/Alert.js"></script>
+    <script type="text/babel" src="js/components/UserProfile.js"></script>
+    <script type="text/babel" src="js/components/AdminPanel.js"></script>
+    
+    <!-- Главное приложение -->
+    <script type="text/babel" src="js/app.js"></script>
+</body>
+</html>
