@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    
+    <title>🎬 Cinema Paradise Mobile</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            overflow-x: hidden;
+            height: 100vh;
+            user-select: none;
+        }
+
+        .app-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .status-bar {
+            height: 44px;
+            background: rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .header {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .connection-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .status-online {
+            background: rgba(76, 175, 80, 0.2);
+            border: 1px solid rgba(76, 175, 80, 0.5);
+            color: #4CAF50;
+        }
+
+        .status-offline {
+            background: rgba(244, 67, 54, 0.2);
+            border: 1px solid rgba(244, 67, 54, 0.5);
+            color: #f44336;
+        }
+
+        .status-connecting {
+            background: rgba(255, 152, 0, 0.2);
+            border: 1px solid rgba(255, 152, 0, 0.5);
+            color: #ff9800;
+        }
+
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            padding-bottom: 100px;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 20px;
+            margin: 15px 0;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:active {
+            transform: scale(0.98);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .action-button {
+            width: 100%;
+            padding: 18px;
+            margin: 12px 0;
+            border: none;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .action-button:active {
+            transform: scale(0.96);
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .action-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .movies-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        .movie-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .movie-card:active {
+            transform: scale(0.95);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .movie-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            line-height: 1.3;
+        }
+
+        .movie-info {
+            font-size: 13px;
+            opacity: 0.8;
+            line-height: 1.4;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .loading-content {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+        }
+
+        .loading-spinner {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            padding: 16px;
+            border-radius: 12px;
+            z-index: 2000;
+            font-weight: 600;
+            text-align: center;
+            transform: translateY(-100px);
+            transition: all 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateY(0);
+        }
+
+        .notification.success {
+            background: rgba(76, 175, 80, 0.9);
+            color: white;
+        }
+
+        .notification.error {
+            background: rgba(244, 67, 54, 0.9);
+            color: white;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(20px);
+            display: flex;
+            justify-content: space-around;
+            padding: 15px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            padding: 8px 12px;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .nav-item.active {
+            color: #4CAF50;
+            background: rgba(76, 175, 80, 0.1);
+        }
+
+        .nav-item:active {
+            transform: scale(0.9);
+        }
+
+        .nav-icon {
+            font-size: 22px;
+        }
+
+        .nav-label {
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        .install-prompt {
+            background: rgba(76, 175, 80, 0.1);
+            border: 1px solid rgba(76, 175, 80, 0.3);
+            border-radius: 12px;
+            padding: 16px;
+            margin: 16px 0;
+            text-align: center;
+        }
+
+        .install-button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+
+        @media (max-height: 600px) {
+            .header {
+                padding: 15px;
+            }
+            .main-content {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="status-bar">
+            🎬 Cinema Paradise Mobile App
+        </div>
+
+        <div class="header">
+            <h1>🎬 Cinema Paradise</h1>
+            <div id="connectionStatus" class="connection-status status-connecting">
+                <span>🔄</span>
+                <span>Подключение...</span>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <!-- Экран установки приложения -->
+            <div id="installPrompt" class="install-prompt" style="display: none;">
+                <h3>📱 Установить приложение</h3>
+                <p>Установите Cinema Paradise на ваше устройство для лучшего опыта!</p>
+                <button id="installButton" class="install-button">
+                    📥 Установить приложение
+                </button>
+            </div>
+
+            <!-- Главный экран -->
+            <div id="homeScreen" class="screen active">
+                <div class="feature-card">
+                    <h3>🎭 Управление кинотеатром</h3>
+                    <p>Полнофункциональное мобильное приложение для Cinema Paradise</p>
+                </div>
+
+                <button class="action-button" onclick="testConnection()">
+                    <span>🔗</span>
+                    <span>Проверить подключение к API</span>
+                </button>
+                
+                <button class="action-button" onclick="loadDemoData()">
+                    <span>🎭</span>
+                    <span>Загрузить демо данные</span>
+                </button>
+                
+                <button class="action-button" onclick="showMovies()">
+                    <span>🎬</span>
+                    <span>Просмотр фильмов</span>
+                </button>
+
+                <button class="action-button" onclick="showSessions()">
+                    <span>🕒</span>
+                    <span>Сеансы кинотеатра</span>
+                </button>
+                
+                <button class="action-button" onclick="showLogin()">
+                    <span>👤</span>
+                    <span>Вход в систему</span>
+                </button>
+            </div>
+
+            <!-- Экран фильмов -->
+            <div id="moviesScreen" class="screen">
+                <h2>🎬 Фильмы в прокате</h2>
+                <div id="moviesContainer" class="movies-grid"></div>
+            </div>
+
+            <!-- Экран сеансов -->
+            <div id="sessionsScreen" class="screen">
+                <h2>🕒 Расписание сеансов</h2>
+                <div id="sessionsContainer"></div>
+            </div>
+
+            <!-- Экран входа -->
+            <div id="loginScreen" class="screen">
+                <div class="feature-card">
+                    <h3>👤 Вход в систему</h3>
+                    <input type="text" id="loginUsername" placeholder="Логин" style="width: 100%; padding: 12px; margin: 8px 0; border: none; border-radius: 8px; background: rgba(255,255,255,0.1); color: white;">
+                    <input type="password" id="loginPassword" placeholder="Пароль" style="width: 100%; padding: 12px; margin: 8px 0; border: none; border-radius: 8px; background: rgba(255,255,255,0.1); color: white;">
+                    <button class="action-button" onclick="performLogin()">
+                        <span>🔐</span>
+                        <span>Войти</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Загрузка -->
+        <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+            <div class="loading-content">
+                <div class="loading-spinner"></div>
+                <p>Загрузка...</p>
+            </div>
+        </div>
+
+        <!-- Уведомления -->
+        <div id="notification" class="notification"></div>
+
+        <!-- Нижняя навигация -->
+        <div class="bottom-nav">
+            <div class="nav-item active" onclick="showScreen('home')">
+                <span class="nav-icon">🏠</span>
+                <span class="nav-label">Главная</span>
+            </div>
+            <div class="nav-item" onclick="showScreen('movies')">
+                <span class="nav-icon">🎬</span>
+                <span class="nav-label">Фильмы</span>
+            </div>
+            <div class="nav-item" onclick="showScreen('sessions')">
+                <span class="nav-icon">🕒</span>
+                <span class="nav-label">Сеансы</span>
+            </div>
+            <div class="nav-item" onclick="showScreen('login')">
+                <span class="nav-icon">👤</span>
+                <span class="nav-label">Профиль</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Конфигурация API
+        const API_BASE = 'http://192.168.0.10:8000';
+        let authToken = localStorage.getItem('authToken');
+        let deferredPrompt;
+
+        // PWA установка
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('installPrompt').style.display = 'block';
+        });
+
+        document.getElementById('installButton').addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    showNotification('✅ Приложение установлено!', 'success');
+                }
+                deferredPrompt = null;
+                document.getElementById('installPrompt').style.display = 'none';
+            }
+        });
+
+        // Инициализация при загрузке
+        window.addEventListener('load', () => {
+            testConnection();
+            
+            // Регистрация Service Worker
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('sw.js')
+                    .then(() => console.log('✅ Service Worker зарегистрирован'))
+                    .catch(err => console.log('❌ Ошибка SW:', err));
+            }
+        });
+
+        // Управление экранами
+        function showScreen(screenName) {
+            // Скрыть все экраны
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            
+            // Обновить навигацию
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Показать выбранный экран
+            document.getElementById(screenName + 'Screen').classList.add('active');
+            event.target.closest('.nav-item').classList.add('active');
+            
+            // Загрузить данные для экрана
+            switch(screenName) {
+                case 'movies':
+                    loadMovies();
+                    break;
+                case 'sessions':
+                    loadSessions();
+                    break;
+            }
+        }
+
+        // API функции
+        async function testConnection() {
+            updateConnectionStatus('connecting');
+            
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                const data = await response.json();
+                
+                updateConnectionStatus('online');
+                showNotification('✅ Соединение установлено!', 'success');
+            } catch (error) {
+                updateConnectionStatus('offline');
+                showNotification('❌ Не удается подключиться к серверу', 'error');
+            }
+        }
+
+        async function loadDemoData() {
+            showLoading(true);
+            
+            try {
+                const response = await fetch(`${API_BASE}/demo/populate`);
+                const data = await response.json();
+                
+                showNotification('🎭 Демо данные загружены!', 'success');
+            } catch (error) {
+                showNotification('❌ Ошибка загрузки демо данных', 'error');
+            }
+            
+            showLoading(false);
+        }
+
+        async function loadMovies() {
+            showLoading(true);
+            
+            try {
+                const response = await fetch(`${API_BASE}/movies`);
+                const movies = await response.json();
+                
+                const container = document.getElementById('moviesContainer');
+                container.innerHTML = '';
+                
+                movies.forEach(movie => {
+                    const movieCard = document.createElement('div');
+                    movieCard.className = 'movie-card';
+                    movieCard.innerHTML = `
+                        <div class="movie-title">${movie.title}</div>
+                        <div class="movie-info">
+                            ${movie.duration} мин<br>
+                            ⭐ ${movie.rating}/10<br>
+                            ${movie.genre || 'Драма'}
+                        </div>
+                    `;
+                    container.appendChild(movieCard);
+                });
+                
+                showNotification(`🎬 Загружено ${movies.length} фильмов`, 'success');
+            } catch (error) {
+                showNotification('❌ Ошибка загрузки фильмов', 'error');
+            }
+            
+            showLoading(false);
+        }
+
+        async function loadSessions() {
+            showLoading(true);
+            
+            try {
+                const response = await fetch(`${API_BASE}/sessions`);
+                const sessions = await response.json();
+                
+                const container = document.getElementById('sessionsContainer');
+                container.innerHTML = '';
+                
+                sessions.forEach(session => {
+                    const sessionCard = document.createElement('div');
+                    sessionCard.className = 'feature-card';
+                    sessionCard.innerHTML = `
+                        <h4>${session.movie?.title || 'Фильм'}</h4>
+                        <p>🕒 ${new Date(session.start_time).toLocaleString('ru')}</p>
+                        <p>💰 ${session.price} ₽</p>
+                        <p>🎪 Зал ${session.hall?.name || session.hall_id}</p>
+                    `;
+                    container.appendChild(sessionCard);
+                });
+                
+                showNotification(`🕒 Загружено ${sessions.length} сеансов`, 'success');
+            } catch (error) {
+                showNotification('❌ Ошибка загрузки сеансов', 'error');
+            }
+            
+            showLoading(false);
+        }
+
+        async function performLogin() {
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            if (!username || !password) {
+                showNotification('❌ Введите логин и пароль', 'error');
+                return;
+            }
+            
+            showLoading(true);
+            
+            try {
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    authToken = data.access_token;
+                    localStorage.setItem('authToken', authToken);
+                    showNotification(`✅ Добро пожаловать, ${username}!`, 'success');
+                    
+                    // Очистить поля
+                    document.getElementById('loginUsername').value = '';
+                    document.getElementById('loginPassword').value = '';
+                } else {
+                    showNotification('❌ Неверные учетные данные', 'error');
+                }
+            } catch (error) {
+                showNotification('❌ Ошибка входа в систему', 'error');
+            }
+            
+            showLoading(false);
+        }
+
+        // Вспомогательные функции
+        function updateConnectionStatus(status) {
+            const statusElement = document.getElementById('connectionStatus');
+            statusElement.className = `connection-status status-${status}`;
+            
+            switch(status) {
+                case 'online':
+                    statusElement.innerHTML = '<span>✅</span><span>Подключено</span>';
+                    break;
+                case 'offline':
+                    statusElement.innerHTML = '<span>❌</span><span>Нет связи</span>';
+                    break;
+                case 'connecting':
+                    statusElement.innerHTML = '<span>🔄</span><span>Подключение...</span>';
+                    break;
+            }
+        }
+
+        function showLoading(show) {
+            document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
+        }
+
+        function showNotification(message, type) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        function showMovies() {
+            showScreen('movies');
+        }
+
+        function showSessions() {
+            showScreen('sessions');
+        }
+
+        function showLogin() {
+            showScreen('login');
+        }
+    </script>
+</body>
+</html> 

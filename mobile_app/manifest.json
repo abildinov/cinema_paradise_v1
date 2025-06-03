@@ -1,0 +1,13 @@
+{
+  "name": "Cinema Paradise Mobile",
+  "short_name": "Cinema Paradise",
+  "description": "Мобильное приложение для управления кинотеатром Cinema Paradise",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#667eea",
+  "background_color": "#667eea",
+  "scope": "/",
+  "lang": "ru",
+  "categories": ["entertainment", "productivity"]
+} 

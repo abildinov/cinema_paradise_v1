@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Icon Generator</title>
+</head>
+<body>
+    <canvas id="canvas" width="192" height="192"></canvas>
+    <br>
+    <a id="download" download="icon-192.png">Download Icon</a>
+    
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Создаем градиент
+        const gradient = ctx.createLinearGradient(0, 0, 192, 192);
+        gradient.addColorStop(0, '#667eea');
+        gradient.addColorStop(1, '#764ba2');
+        
+        // Рисуем фон
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, 192, 192);
+        
+        // Добавляем текст
+        ctx.fillStyle = 'white';
+        ctx.font = '80px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('🎬', 96, 96);
+        
+        // Создаем ссылку для скачивания
+        canvas.toBlob(function(blob) {
+            const url = URL.createObjectURL(blob);
+            document.getElementById('download').href = url;
+        });
+    </script>
+</body>
+</html> 
