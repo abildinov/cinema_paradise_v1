@@ -1,0 +1,127 @@
+version: '3.8'
+
+services:
+  # Cinema API Backend
+  cinema-api:
+    build:
+      context: ..
+      dockerfile: deployment/Dockerfile.production
+    container_name: cinema-api-prod
+    restart: unless-stopped
+    environment:
+      - ENVIRONMENT=production
+      - SECRET_KEY=${SECRET_KEY}
+      - DATABASE_URL=sqlite:///data/cinema_v2.db
+      - CORS_ORIGINS=${CORS_ORIGINS}
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+    volumes:
+      - ../data:/app/data
+      - api_logs:/app/logs
+    networks:
+      - cinema-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Frontend Web App
+  frontend:
+    image: nginx:alpine
+    container_name: cinema-frontend-prod
+    restart: unless-stopped
+    volumes:
+      - ../frontend:/usr/share/nginx/html/frontend:ro
+      - ./nginx/frontend.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - cinema-network
+
+  # Mobile PWA App
+  mobile-app:
+    image: nginx:alpine
+    container_name: cinema-mobile-prod
+    restart: unless-stopped
+    volumes:
+      - ../mobile_app:/usr/share/nginx/html/mobile:ro
+      - ./nginx/mobile.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - cinema-network
+
+  # Main Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: cinema-nginx-prod
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+      - nginx_logs:/var/log/nginx
+    depends_on:
+      - cinema-api
+      - frontend
+      - mobile-app
+    networks:
+      - cinema-network
+
+  # Redis для кеширования (опционально)
+  redis:
+    image: redis:7-alpine
+    container_name: cinema-redis-prod
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - cinema-network
+
+  # Мониторинг - Prometheus
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: cinema-prometheus-prod
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    networks:
+      - cinema-network
+
+  # Grafana для визуализации
+  grafana:
+    image: grafana/grafana:latest
+    container_name: cinema-grafana-prod
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana:/etc/grafana/provisioning:ro
+    depends_on:
+      - prometheus
+    networks:
+      - cinema-network
+
+volumes:
+  api_logs:
+  nginx_logs:
+  redis_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  cinema-network:
+    driver: bridge 
