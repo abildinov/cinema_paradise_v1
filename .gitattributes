@@ -1,0 +1,32 @@
+# Обеспечиваем правильные окончания строк для разных типов файлов
+
+# Текстовые файлы - автоматическое определение
+* text=auto
+
+# Bash скрипты всегда используют LF (для Linux серверов)
+*.sh text eol=lf
+
+# Python файлы
+*.py text eol=lf
+
+# Docker файлы
+Dockerfile* text eol=lf
+docker-compose*.yml text eol=lf
+
+# Конфигурационные файлы
+*.conf text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.json text eol=lf
+
+# Markdown документация
+*.md text eol=lf
+
+# Исключения - бинарные файлы
+*.db binary
+*.sqlite binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary 
