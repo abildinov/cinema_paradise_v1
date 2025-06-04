@@ -1,5 +1,7 @@
 // Admin Panel Component
 const AdminPanel = ({ user, onClose }) => {
+    console.log('🔧 AdminPanel: Компонент загружен с пользователем:', user);
+    
     const [activeTab, setActiveTab] = useState('stats');
     const [stats, setStats] = useState(null);
     const [tickets, setTickets] = useState([]);
@@ -8,6 +10,7 @@ const AdminPanel = ({ user, onClose }) => {
     const [error, setError] = useState('');
 
     useEffect(() => {
+        console.log('🔧 AdminPanel: useEffect вызван с пользователем:', user, 'активная вкладка:', activeTab);
         if (user?.role === 'admin') {
             loadData();
         } else {
@@ -19,6 +22,8 @@ const AdminPanel = ({ user, onClose }) => {
         try {
             setLoading(true);
             setError('');
+            
+            console.log('🔧 AdminPanel: loadData начал загрузку, активная вкладка:', activeTab);
             
             if (activeTab === 'stats') {
                 // Загружаем статистику
@@ -39,18 +44,27 @@ const AdminPanel = ({ user, onClose }) => {
                 });
             } else if (activeTab === 'tickets') {
                 // Загружаем билеты
+                console.log('🔧 AdminPanel: Загружаем билеты...');
+                console.log('🔧 AdminPanel: window.api.getAllTickets существует?', !!window.api.getAllTickets);
+                
                 const ticketsData = await window.api.getAllTickets();
+                console.log('🔍 Полученные билеты от API:', ticketsData);
+                console.log('🔍 Тип полученных данных:', typeof ticketsData);
+                console.log('🔍 Длина массива билетов:', Array.isArray(ticketsData) ? ticketsData.length : 'не массив');
+                
                 setTickets(ticketsData || []);
+                console.log('🔧 AdminPanel: setTickets вызван с данными:', ticketsData || []);
             } else if (activeTab === 'users') {
                 // Загружаем пользователей
                 const usersData = await window.api.getAllUsers();
                 setUsers(usersData || []);
             }
         } catch (error) {
-            console.error('Error loading admin data:', error);
+            console.error('🔧 AdminPanel: Error loading admin data:', error);
             setError('Ошибка загрузки данных: ' + error.message);
         } finally {
             setLoading(false);
+            console.log('🔧 AdminPanel: loadData завершен');
         }
     };
 
@@ -291,78 +305,74 @@ const AdminPanel = ({ user, onClose }) => {
                 ) :
 
                 // Tickets Tab
-                activeTab === 'tickets' ? React.createElement('div', null,
-                    React.createElement('h3', {
-                        className: 'text-lg font-semibold mb-4 text-gray-800'
-                    }, '🎫 Все билеты'),
-                    tickets.length === 0 ? React.createElement('div', {
-                        className: 'text-center py-8'
-                    },
-                        React.createElement('div', {
-                            className: 'text-6xl mb-4'
-                        }, '🎫'),
-                        React.createElement('p', {
-                            className: 'text-gray-600'
-                        }, 'Билетов пока нет')
-                    ) : React.createElement('div', {
-                        className: 'space-y-4'
-                    },
-                        tickets.map(ticket => 
+                activeTab === 'tickets' ? (() => {
+                    console.log('🔧 AdminPanel: Рендеринг билетов, количество:', tickets.length, 'билеты:', tickets);
+                    return React.createElement('div', null,
+                        React.createElement('h3', {
+                            className: 'text-lg font-semibold mb-4 text-gray-800'
+                        }, '🎫 Все билеты'),
+                        tickets.length === 0 ? React.createElement('div', {
+                            className: 'text-center py-8'
+                        },
                             React.createElement('div', {
-                                key: ticket.id,
-                                className: 'border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow'
+                                className: 'text-6xl mb-4'
+                            }, '🎫'),
+                            React.createElement('p', {
+                                className: 'text-gray-600'
+                            }, 'Билетов пока нет')
+                        ) : React.createElement('div', {
+                            className: 'overflow-x-auto'
+                        },
+                            React.createElement('table', {
+                                className: 'min-w-full text-sm border border-gray-300 rounded-lg bg-white'
                             },
-                                React.createElement('div', {
-                                    className: 'flex justify-between items-start mb-2'
+                                React.createElement('thead', {
+                                    className: 'bg-gray-100'
                                 },
-                                    React.createElement('div', null,
-                                        React.createElement('h4', {
-                                            className: 'font-semibold text-gray-900'
-                                        }, `Билет #${ticket.id}`),
-                                        React.createElement('p', {
-                                            className: 'text-gray-600'
-                                        }, `Пользователь: ${ticket.user?.username || 'Неизвестно'}`)
-                                    ),
-                                    React.createElement('span', {
-                                        className: `px-3 py-1 rounded-full text-sm font-medium ${
-                                            ticket.is_confirmed ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-                                        }`
-                                    }, ticket.is_confirmed ? 'Подтвержден' : 'Ожидает')
-                                ),
-                                React.createElement('div', {
-                                    className: 'grid grid-cols-1 md:grid-cols-4 gap-2 text-sm'
-                                },
-                                    React.createElement('div', null,
-                                        React.createElement('span', {
-                                            className: 'text-gray-600'
-                                        }, 'Фильм: '),
-                                        React.createElement('span', null, ticket.session?.movie?.title || 'Неизвестно')
-                                    ),
-                                    React.createElement('div', null,
-                                        React.createElement('span', {
-                                            className: 'text-gray-600'
-                                        }, 'Место: '),
-                                        React.createElement('span', null, `Ряд ${ticket.row_number}, Место ${ticket.seat_number}`)
-                                    ),
-                                    React.createElement('div', null,
-                                        React.createElement('span', {
-                                            className: 'text-gray-600'
-                                        }, 'Цена: '),
-                                        React.createElement('span', {
-                                            className: 'font-medium text-green-600'
-                                        }, `${ticket.price} ₽`)
-                                    ),
-                                    React.createElement('div', null,
-                                        React.createElement('span', {
-                                            className: 'text-gray-600'
-                                        }, 'Дата: '),
-                                        React.createElement('span', null, formatDate(ticket.created_at))
+                                    React.createElement('tr', null,
+                                        React.createElement('th', { className: 'px-3 py-2 border-b font-semibold text-gray-900 text-left' }, '#'),
+                                        React.createElement('th', { className: 'px-3 py-2 border-b font-semibold text-gray-900 text-left' }, 'Пользователь'),
+                                        React.createElement('th', { className: 'px-3 py-2 border-b font-semibold text-gray-900 text-left' }, 'Фильм'),
+                                        React.createElement('th', { className: 'px-3 py-2 border-b font-semibold text-gray-900 text-left' }, 'Место'),
+                                        React.createElement('th', { className: 'px-3 py-2 border-b font-semibold text-gray-900 text-left' }, 'Зал'),
+                                        React.createElement('th', { className: 'px-3 py-2 border-b font-semibold text-gray-900 text-left' }, 'Дата'),
+                                        React.createElement('th', { className: 'px-3 py-2 border-b font-semibold text-gray-900 text-left' }, 'Email'),
+                                        React.createElement('th', { className: 'px-3 py-2 border-b font-semibold text-gray-900 text-left' }, 'Статус')
                                     )
+                                ),
+                                React.createElement('tbody', null,
+                                    tickets.map((ticket, idx) => {
+                                        const userName = ticket.customer_name || ticket.user || (ticket.user_info && ticket.user_info.username) || '—';
+                                        const movieTitle = ticket.movie_title || (ticket.movie && ticket.movie.title) || (ticket.session && ticket.session.movie && ticket.session.movie.title) || '—';
+                                        const seat = ticket.seat_numbers && Array.isArray(ticket.seat_numbers) && ticket.seat_numbers.length > 0
+                                            ? ticket.seat_numbers.join(', ')
+                                            : (ticket.seat_number || '—');
+                                        const email = ticket.customer_email || (ticket.user_info && ticket.user_info.email) || '—';
+                                        const hall = ticket.hall_name || (ticket.hall && ticket.hall.name) || (ticket.session && ticket.session.hall && ticket.session.hall.name) || '—';
+                                        const date = ticket.booking_time || ticket.purchase_date || ticket.start_time || '';
+                                        return React.createElement('tr', {
+                                            key: ticket.id,
+                                            className: `transition hover:bg-purple-50 ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`
+                                        },
+                                            React.createElement('td', { className: 'px-3 py-2 border-b text-gray-900' }, ticket.id),
+                                            React.createElement('td', { className: 'px-3 py-2 border-b text-gray-900' }, userName),
+                                            React.createElement('td', { className: 'px-3 py-2 border-b text-gray-900' }, movieTitle),
+                                            React.createElement('td', { className: 'px-3 py-2 border-b text-gray-900' }, seat),
+                                            React.createElement('td', { className: 'px-3 py-2 border-b text-gray-900' }, hall),
+                                            React.createElement('td', { className: 'px-3 py-2 border-b text-gray-900' }, date ? new Date(date).toLocaleString('ru-RU') : '—'),
+                                            React.createElement('td', { className: 'px-3 py-2 border-b text-gray-900' }, email),
+                                            React.createElement('td', { className: 'px-3 py-2 border-b' },
+                                                React.createElement('span', {
+                                                    className: `px-2 py-1 rounded-full text-xs font-medium ${ticket.is_paid ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`
+                                                }, ticket.is_paid ? 'Оплачен' : 'Ожидает')
+                                            )
+                                        );
+                                    })
                                 )
                             )
                         )
-                    )
-                ) :
+                    );
+                })() :
 
                 // Users Tab
                 activeTab === 'users' ? React.createElement('div', null,

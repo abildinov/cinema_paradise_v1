@@ -10,10 +10,24 @@ const Header = () => {
             checkAuthentication();
         };
         
+        // Обработчик успешного логина
+        const handleLoginSuccess = () => {
+            checkAuthentication();
+        };
+        
+        // Обработчик ошибки авторизации
+        const handleAuthError = () => {
+            setUser(null);
+        };
+        
         window.addEventListener('storage', handleStorageChange);
+        window.addEventListener('loginSuccess', handleLoginSuccess);
+        window.addEventListener('authError', handleAuthError);
         
         return () => {
             window.removeEventListener('storage', handleStorageChange);
+            window.removeEventListener('loginSuccess', handleLoginSuccess);
+            window.removeEventListener('authError', handleAuthError);
         };
     }, []);
     

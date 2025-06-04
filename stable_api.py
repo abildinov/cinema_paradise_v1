@@ -15,12 +15,11 @@ def main():
     print("🎬 Cinema Paradise API - Стабильный режим")
     print("=" * 50)
     print("✅ Без auto-reload")
-    print("✅ Игнорирует изменения в mobile/")
     print("✅ Стабильная работа на localhost:8000")
     print("=" * 50)
     
-    # Импортируем приложение
-    from cinema_api_tortoise import app
+    # Импортируем приложение из модулей app
+    from app.main import app
     
     # Запускаем без auto-reload
     uvicorn.run(

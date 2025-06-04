@@ -56,6 +56,7 @@ function App() {
         
         // Слушаем событие открытия админ панели
         const handleOpenAdminPanel = () => {
+            console.log('🔧 App: handleOpenAdminPanel вызван, текущий пользователь:', user);
             setShowAdminPanel(true);
         };
         
@@ -142,6 +143,9 @@ function App() {
         setUser(userData);
         setShowLoginModal(false);
         setError('');
+        
+        // Генерируем событие для обновления Header
+        window.dispatchEvent(new CustomEvent('loginSuccess'));
         
         // Обновляем данные после авторизации
         try {
@@ -347,6 +351,9 @@ function App() {
             user: user,
             onClose: () => setShowUserProfile(false)
         }),
+
+        // Debug AdminPanel state
+        console.log('🔧 App: showAdminPanel:', showAdminPanel, 'user:', user, 'AdminPanel exists:', !!window.AdminPanel),
 
         showAdminPanel && React.createElement(window.AdminPanel, {
             user: user,

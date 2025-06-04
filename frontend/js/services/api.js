@@ -1,5 +1,5 @@
 // API Configuration
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = 'http://192.168.0.10:8000';
 
 // Axios instance with base configuration
 const api = axios.create({
@@ -75,27 +75,33 @@ window.api = {
 
     // Authentication
     async login(username, password) {
-        const response = await this._request('POST', '/auth/login', {
-            username: username,
-            password: password
+        // Для form-data
+        const formData = new URLSearchParams();
+        formData.append('username', username);
+        formData.append('password', password);
+    
+        const response = await api.post('/auth/login', formData, {
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
         });
-        
-        if (response.access_token) {
-            localStorage.setItem('token', response.access_token);
-            
+    
+        if (response.data.access_token) {
+            localStorage.setItem('token', response.data.access_token);
+    
             // Получаем полную информацию о пользователе из /auth/me
             try {
                 const userInfo = await this.getCurrentUser();
                 localStorage.setItem('user', JSON.stringify(userInfo));
-                return { ...response, user: userInfo };
+                return { ...response.data, user: userInfo };
             } catch (e) {
                 console.error('Failed to get user info after login:', e);
                 localStorage.removeItem('token');
                 throw new Error('Не удалось получить информацию о пользователе');
             }
         }
-        
-        return response;
+    
+        return response.data;
     },
 
     async register(userData) {
@@ -138,6 +144,10 @@ window.api = {
 
     async getUserTickets() {
         return await this._request('GET', '/tickets/my');
+    },
+
+    async getTicketsForSession(sessionId) {
+        return await this._request('GET', `/sessions/${sessionId}/tickets`);
     },
 
     // Admin endpoints

@@ -29,7 +29,7 @@ const BookingModal = ({ isOpen, session, onClose, onSuccess }) => {
         }
     }, [isOpen, session]);
 
-    const generateSeatMap = () => {
+    const generateSeatMap = async () => {
         if (!session.hall) {
             console.log('BookingModal: No hall data', session);
             return;
@@ -44,27 +44,33 @@ const BookingModal = ({ isOpen, session, onClose, onSuccess }) => {
         console.log('BookingModal: Hall config:', { totalSeats, rows, seatsPerRow });
         
         const map = [];
+        let bookedSeats = [];
         
-        for (let row = 0; row < rows; row++) {
-            const rowSeats = [];
-            for (let seat = 0; seat < seatsPerRow; seat++) {
-                const seatNumber = row * seatsPerRow + seat + 1;
-                if (seatNumber <= totalSeats) {
-                    rowSeats.push({
-                        number: seatNumber,
-                        row: row + 1,
-                        seat: seat + 1,
-                        isBooked: Math.random() < 0.3 // Случайно занятые места
-                    });
-                }
-            }
-            if (rowSeats.length > 0) {
-                map.push(rowSeats);
-            }
+        try {
+            // Запрашиваем данные о занятых местах для текущего сеанса
+            const tickets = await window.api.getTicketsForSession(session.id);
+            bookedSeats = tickets.map(ticket => ticket.seat_number);
+            console.log('BookingModal: Booked seats fetched:', bookedSeats);
+        } catch (error) {
+            console.error('BookingModal: Error fetching booked seats:', error);
         }
         
-        console.log('BookingModal: Generated seat map:', map);
+        for (let row = 1; row <= rows; row++) {
+            const rowSeats = [];
+            for (let seat = 1; seat <= seatsPerRow; seat++) {
+                const seatNumber = (row - 1) * seatsPerRow + seat;
+                if (seatNumber > totalSeats) break;
+                rowSeats.push({
+                    number: seatNumber,
+                    row: row,
+                    available: !bookedSeats.includes(seatNumber)
+                });
+            }
+            map.push(rowSeats);
+        }
+        
         setSeatMap(map);
+        console.log('BookingModal: Generated seat map:', map);
     };
 
     const handleSeatClick = (seatNumber) => {
@@ -178,14 +184,14 @@ const BookingModal = ({ isOpen, session, onClose, onSuccess }) => {
                             React.createElement('button', {
                                 key: seat.number,
                                 className: `w-8 h-8 mx-1 rounded text-xs font-medium transition-colors ${
-                                    seat.isBooked 
-                                        ? 'bg-red-600 text-white cursor-not-allowed' 
-                                        : selectedSeats.includes(seat.number)
-                                            ? 'bg-purple-600 text-white'
-                                            : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+                                    selectedSeats.includes(seat.number)
+                                        ? 'bg-purple-600 text-white'
+                                        : seat.available 
+                                            ? 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+                                            : 'bg-red-600 text-white cursor-not-allowed'
                                 }`,
-                                onClick: () => !seat.isBooked && handleSeatClick(seat.number),
-                                disabled: seat.isBooked
+                                onClick: () => seat.available && handleSeatClick(seat.number),
+                                disabled: !seat.available
                             }, seat.number)
                         )
                     )

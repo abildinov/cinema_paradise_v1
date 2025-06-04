@@ -5,7 +5,8 @@ import os
 
 # URL подключения к базе данных
 # Для демонстрации используем SQLite, в продакшене - PostgreSQL
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./cinema_api.db")
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./data/cinema_v2.db")
+print(f"[INFO] Используется база данных: {DATABASE_URL}")
 
 # Создание движка SQLAlchemy
 if DATABASE_URL.startswith("sqlite"):

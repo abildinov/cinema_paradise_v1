@@ -1,12 +1,12 @@
 #!/bin/bash
 
-# 🚀 Cinema Paradise Production Deployment Script
-# Автоматический деплой на VPS
+# 🚀 Cinema Paradise Simple Deployment Script
+# Простой деплой на VPS без Docker
 
 set -e  # Остановка при ошибке
 
-echo "🎬 Cinema Paradise - Production Deployment"
-echo "=========================================="
+echo "🎬 Cinema Paradise - Simple Deployment"
+echo "======================================"
 
 # Цвета для вывода
 RED='\033[0;31m'
@@ -33,15 +33,15 @@ error() {
 check_dependencies() {
     log "Проверка зависимостей..."
     
-    if ! command -v docker &> /dev/null; then
-        error "Docker не установлен!"
+    if ! command -v python3 &> /dev/null; then
+        error "Python3 не установлен!"
     fi
     
-    if ! command -v docker-compose &> /dev/null; then
-        error "Docker Compose не установлен!"
+    if ! command -v nginx &> /dev/null; then
+        warn "Nginx не установлен - установите для продакшена"
     fi
     
-    log "✅ Все зависимости установлены"
+    log "✅ Основные зависимости найдены"
 }
 
 # Проверка переменных окружения
@@ -77,52 +77,121 @@ backup_data() {
     fi
 }
 
-# Остановка старых контейнеров
-stop_containers() {
-    log "Остановка существующих контейнеров..."
+# Остановка старых процессов
+stop_services() {
+    log "Остановка существующих процессов..."
     
-    docker-compose -f docker-compose.production.yml down --remove-orphans || true
+    # Останавливаем процессы Python API
+    pkill -f "python.*stable_api.py" || true
+    pkill -f "python.*cinema_api" || true
     
-    # Очистка неиспользуемых образов
-    docker system prune -f
+    # Останавливаем процессы веб-серверов
+    pkill -f "python.*http.server.*3000" || true
+    pkill -f "python.*http.server.*3002" || true
     
-    log "✅ Контейнеры остановлены"
+    log "✅ Старые процессы остановлены"
 }
 
-# Сборка и запуск
-deploy() {
-    log "Сборка и запуск приложения..."
+# Установка зависимостей
+install_deps() {
+    log "Установка зависимостей Python..."
     
-    # Загрузка переменных окружения
-    export $(cat .env.production | grep -v '^#' | xargs)
+    cd ..
     
-    # Сборка образов
-    docker-compose -f docker-compose.production.yml build --no-cache
+    # Проверяем и создаем виртуальное окружение
+    if [ ! -d "venv" ]; then
+        python3 -m venv venv
+        log "✅ Виртуальное окружение создано"
+    fi
     
-    # Запуск контейнеров
-    docker-compose -f docker-compose.production.yml up -d
+    # Активируем виртуальное окружение
+    source venv/bin/activate
     
-    log "✅ Приложение запущено"
+    # Устанавливаем зависимости
+    pip install --upgrade pip
+    pip install -r requirements.txt
+    
+    log "✅ Зависимости установлены"
+}
+
+# Настройка Nginx
+setup_nginx() {
+    log "Настройка Nginx..."
+    
+    if command -v nginx &> /dev/null; then
+        sudo cp nginx/nginx.conf /etc/nginx/sites-available/cinema-paradise
+        sudo ln -sf /etc/nginx/sites-available/cinema-paradise /etc/nginx/sites-enabled/
+        sudo nginx -t && sudo systemctl reload nginx
+        log "✅ Nginx настроен"
+    else
+        warn "Nginx не установлен - пропускаем настройку"
+    fi
+}
+
+# Запуск приложения
+start_services() {
+    log "Запуск сервисов..."
+    
+    cd ..
+    
+    # Активируем виртуальное окружение
+    source venv/bin/activate
+    
+    # Загружаем переменные окружения
+    if [ -f "deployment/.env.production" ]; then
+        export $(cat deployment/.env.production | grep -v '^#' | xargs)
+    fi
+    
+    # Запускаем API в фоне
+    nohup python stable_api.py > logs/api.log 2>&1 &
+    API_PID=$!
+    echo $API_PID > deployment/api.pid
+    
+    # Запускаем фронтенд в фоне
+    cd frontend
+    nohup python -m http.server 3000 > ../logs/frontend.log 2>&1 &
+    FRONTEND_PID=$!
+    echo $FRONTEND_PID > ../deployment/frontend.pid
+    
+    # Запускаем мобильное приложение в фоне
+    cd ../mobile_app
+    nohup python -m http.server 3002 --bind 0.0.0.0 > ../logs/mobile.log 2>&1 &
+    MOBILE_PID=$!
+    echo $MOBILE_PID > ../deployment/mobile.pid
+    
+    cd ..
+    
+    log "✅ Сервисы запущены"
+    log "API PID: $API_PID"
+    log "Frontend PID: $FRONTEND_PID" 
+    log "Mobile PID: $MOBILE_PID"
 }
 
 # Проверка здоровья
 health_check() {
     log "Проверка работоспособности..."
     
-    sleep 30  # Ждем запуска контейнеров
+    sleep 10  # Ждем запуска сервисов
     
     # Проверка API
-    if curl -f http://localhost/api/health > /dev/null 2>&1; then
-        log "✅ API работает"
+    if curl -f http://localhost:8000/health > /dev/null 2>&1; then
+        log "✅ API работает на порту 8000"
     else
-        error "❌ API не отвечает"
+        warn "❌ API не отвечает на порту 8000"
     fi
     
-    # Проверка контейнеров
-    if docker-compose -f docker-compose.production.yml ps | grep -q "Up"; then
-        log "✅ Контейнеры запущены"
+    # Проверка фронтенда
+    if curl -f http://localhost:3000 > /dev/null 2>&1; then
+        log "✅ Frontend работает на порту 3000"
     else
-        error "❌ Проблемы с контейнерами"
+        warn "❌ Frontend не отвечает на порту 3000"
+    fi
+    
+    # Проверка мобильного приложения
+    if curl -f http://localhost:3002 > /dev/null 2>&1; then
+        log "✅ Mobile app работает на порту 3002"
+    else
+        warn "❌ Mobile app не отвечает на порту 3002"
     fi
 }
 
@@ -132,27 +201,40 @@ show_status() {
     echo -e "${BLUE}🎉 Деплой завершен успешно!${NC}"
     echo "================================"
     echo ""
-    echo "📱 Мобильное приложение: https://$(grep DOMAIN .env.production | cut -d'=' -f2)/mobile/"
-    echo "🌐 Веб-интерфейс: https://$(grep DOMAIN .env.production | cut -d'=' -f2)/web/"
-    echo "🔗 API документация: https://$(grep DOMAIN .env.production | cut -d'=' -f2)/api/docs"
-    echo "📊 Мониторинг: http://$(grep DOMAIN .env.production | cut -d'=' -f2):3001"
+    echo "🔗 API: http://localhost:8000/docs"
+    echo "🌐 Веб-интерфейс: http://localhost:3000"
+    echo "📱 Мобильное приложение: http://localhost:3002"
+    echo ""
+    echo "📂 Логи:"
+    echo "  API: logs/api.log"
+    echo "  Frontend: logs/frontend.log"  
+    echo "  Mobile: logs/mobile.log"
     echo ""
     echo "📋 Полезные команды:"
-    echo "  docker-compose -f docker-compose.production.yml logs -f    # Логи"
-    echo "  docker-compose -f docker-compose.production.yml ps         # Статус"
-    echo "  docker-compose -f docker-compose.production.yml restart    # Перезапуск"
+    echo "  ./stop.sh                        # Остановка всех сервисов"
+    echo "  tail -f logs/api.log            # Просмотр логов API"
+    echo "  ps aux | grep python            # Проверка процессов"
     echo ""
+}
+
+# Создание директории для логов
+setup_logs() {
+    mkdir -p logs
+    mkdir -p backups
 }
 
 # Основная функция
 main() {
     cd "$(dirname "$0")"
     
+    setup_logs
     check_dependencies
     check_env
     backup_data
-    stop_containers
-    deploy
+    stop_services
+    install_deps
+    setup_nginx
+    start_services
     health_check
     show_status
 }

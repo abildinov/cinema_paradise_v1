@@ -1,17 +1,19 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 
 from ..database import get_db
-from ..models import Ticket as TicketModel, Session as SessionModel
+from ..models import Ticket as TicketModel, Session as SessionModel, User
 from ..schemas import Ticket, TicketCreate, TicketUpdate, TicketList
+from ..auth import get_current_user, get_admin_user
 
 router = APIRouter()
 
 @router.post("/", response_model=Ticket, summary="Забронировать билет")
 async def create_ticket(
     ticket: TicketCreate,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """
@@ -45,8 +47,11 @@ async def create_ticket(
     if ticket.seat_number < 1 or ticket.seat_number > session.total_seats:
         raise HTTPException(status_code=400, detail="Неверный номер места")
     
-    # Создаем билет
-    db_ticket = TicketModel(**ticket.dict())
+    # Создаем билет с привязкой к пользователю
+    ticket_data = ticket.dict()
+    ticket_data["user_id"] = current_user.id  # Связываем с текущим пользователем
+    
+    db_ticket = TicketModel(**ticket_data)
     db.add(db_ticket)
     
     # Уменьшаем количество доступных мест
@@ -235,4 +240,49 @@ async def get_tickets_statistics(
         "unpaid_tickets": unpaid_tickets,
         "total_revenue": total_revenue,
         "average_ticket_price": total_revenue / paid_tickets if paid_tickets > 0 else 0
-    } 
+    }
+
+@router.get("/my", response_model=List[Ticket], summary="Получить мои билеты")
+async def get_my_tickets(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Получение всех билетов текущего авторизованного пользователя.
+    """
+    tickets = db.query(TicketModel).filter(
+        TicketModel.user_id == current_user.id
+    ).order_by(TicketModel.booking_time.desc()).all()
+    
+    return tickets
+
+@router.get("/admin/all", response_model=List[Ticket], summary="Получить все билеты (админ)")
+async def get_all_tickets_admin(
+    admin_user: User = Depends(get_admin_user),
+    skip: int = Query(0, ge=0, description="Количество записей для пропуска"),
+    limit: int = Query(100, ge=1, le=1000, description="Количество записей на странице"),
+    db: Session = Depends(get_db)
+):
+    """
+    Получение всех билетов в системе (только для администраторов).
+    """
+    tickets = db.query(TicketModel).order_by(
+        TicketModel.booking_time.desc()
+    ).offset(skip).limit(limit).all()
+    
+    return tickets
+
+@router.get("/sessions/{session_id}/tickets", response_model=List[Ticket], summary="Получить билеты для сеанса")
+async def get_tickets_for_session(
+    session_id: int,
+    db: Session = Depends(get_db)
+):
+    """
+    Получение списка билетов для конкретного сеанса.
+    """
+    session = db.query(SessionModel).filter(SessionModel.id == session_id).first()
+    if not session:
+        raise HTTPException(status_code=404, detail="Сеанс не найден")
+    
+    tickets = db.query(TicketModel).filter(TicketModel.session_id == session_id).all()
+    return tickets 

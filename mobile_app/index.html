@@ -8,10 +8,15 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
     
-    <title>🎬 Cinema Paradise Mobile</title>
+    <title>🎬 Cinema Paradise Mobile v1.2-FRESH</title>
     
     <!-- PWA Manifest -->
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="manifest.json?v=1.2">
+    
+    <!-- Отключение кэша для разработки -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     
     <style>
         * {
@@ -221,7 +226,7 @@
             right: 20px;
             padding: 16px;
             border-radius: 12px;
-            z-index: 2000;
+            z-index: 3000;
             font-weight: 600;
             text-align: center;
             transform: translateY(-100px);
@@ -321,6 +326,213 @@
                 padding: 15px;
             }
         }
+
+        /* Стили для модального окна бронирования */
+        .booking-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .booking-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            padding: 25px;
+            width: 100%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .booking-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 15px;
+        }
+
+        .booking-header h3 {
+            color: white;
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .close-button {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 28px;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-button:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .session-info {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            color: white;
+        }
+
+        .screen-indicator {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .screen {
+            background: linear-gradient(45deg, #4CAF50, #2196F3);
+            height: 8px;
+            border-radius: 20px;
+            margin-bottom: 8px;
+            box-shadow: 0 3px 10px rgba(76, 175, 80, 0.3);
+        }
+
+        .screen-indicator p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        .seat-map {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 15px;
+        }
+
+        .seat-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .row-number {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 12px;
+            width: 20px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .seat {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: none;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .seat.free {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .seat.free:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .seat.selected {
+            background: #764ba2;
+            color: white;
+            border: 2px solid #8a5ac2;
+            transform: scale(1.1);
+            box-shadow: 0 0 10px rgba(118, 75, 162, 0.5);
+        }
+
+        .seat.occupied {
+            background: #f44336;
+            color: white;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .booking-legend {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .seat-demo {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+        }
+
+        .seat-demo.free {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .seat-demo.selected {
+            background: #4CAF50;
+        }
+
+        .seat-demo.occupied {
+            background: #f44336;
+        }
+
+        .booking-summary {
+            background: rgba(76, 175, 80, 0.2);
+            border: 1px solid rgba(76, 175, 80, 0.5);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            color: white;
+        }
+
+        .booking-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
     </style>
 </head>
 <body>
@@ -378,6 +590,11 @@
                     <span>👤</span>
                     <span>Вход в систему</span>
                 </button>
+                
+                <button class="action-button" onclick="testAuthCompat()">
+                    <span>🔗</span>
+                    <span>Тест совместимости авторизации</span>
+                </button>
             </div>
 
             <!-- Экран фильмов -->
@@ -402,6 +619,10 @@
                         <span>🔐</span>
                         <span>Войти</span>
                     </button>
+                    <button class="action-button" onclick="logout()" style="background: rgba(244, 67, 54, 0.3); border-color: rgba(244, 67, 54, 0.5);">
+                        <span>🚪</span>
+                        <span>Выйти</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -416,6 +637,56 @@
 
         <!-- Уведомления -->
         <div id="notification" class="notification"></div>
+
+        <!-- Модальное окно бронирования -->
+        <div id="bookingModal" class="booking-modal" style="display: none;">
+            <div class="booking-content">
+                <div class="booking-header">
+                    <h3>🎫 Бронирование билета</h3>
+                    <button onclick="closeBookingModal()" class="close-button">×</button>
+                </div>
+                
+                <div id="bookingSessionInfo" class="session-info"></div>
+                
+                <div class="screen-indicator">
+                    <div class="screen"></div>
+                    <p>ЭКРАН</p>
+                </div>
+                
+                <div id="seatMap" class="seat-map"></div>
+                
+                <div class="booking-legend">
+                    <div class="legend-item">
+                        <div class="seat-demo free"></div>
+                        <span>Свободно</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="seat-demo selected"></div>
+                        <span>Выбрано</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="seat-demo occupied"></div>
+                        <span>Занято</span>
+                    </div>
+                </div>
+                
+                <div id="bookingSummary" class="booking-summary" style="display: none;">
+                    <p><strong>Выбранные места:</strong> <span id="selectedSeatsText"></span></p>
+                    <p><strong>Общая стоимость:</strong> <span id="totalPriceText"></span> ₽</p>
+                </div>
+                
+                <div class="booking-actions">
+                    <button id="confirmBookingBtn" onclick="confirmBooking()" class="action-button" disabled>
+                        <span>✅</span>
+                        <span>Подтвердить бронирование</span>
+                    </button>
+                    <button onclick="closeBookingModal()" class="action-button" style="background: rgba(244, 67, 54, 0.3); border-color: rgba(244, 67, 54, 0.5);">
+                        <span>❌</span>
+                        <span>Отмена</span>
+                    </button>
+                </div>
+            </div>
+        </div>
 
         <!-- Нижняя навигация -->
         <div class="bottom-nav">
@@ -439,10 +710,32 @@
     </div>
 
     <script>
+        // ПРИНУДИТЕЛЬНАЯ ОЧИСТКА КЭША ДЛЯ РАЗРАБОТКИ - УСИЛЕННАЯ ВЕРСИЯ
+        if ('caches' in window) {
+            caches.keys().then(function(cacheNames) {
+                cacheNames.forEach(function(cacheName) {
+                    console.log('🗑️ ОЧИСТКА КЭША:', cacheName);
+                    caches.delete(cacheName);
+                });
+            });
+            // Принудительное обновление страницы с новой версией
+            const version = 'v1.2.2'; // Увеличиваем версию для принудительного обновления
+            if (localStorage.getItem('appVersion') !== version) {
+                localStorage.setItem('appVersion', version);
+                window.location.reload(true); // Принудительное обновление без кэша
+                console.log('🔄 ПРИНУДИТЕЛЬНОЕ ОБНОВЛЕНИЕ: Новая версия приложения', version);
+            }
+        }
+        
         // Конфигурация API
         const API_BASE = 'http://192.168.0.10:8000';
-        let authToken = localStorage.getItem('authToken');
+        let authToken = localStorage.getItem('token');
         let deferredPrompt;
+        
+        // Глобальные переменные для бронирования
+        let currentSession = null;
+        let selectedSeats = [];
+        let allSessions = [];
 
         // PWA установка
         window.addEventListener('beforeinstallprompt', (e) => {
@@ -466,43 +759,136 @@
         // Инициализация при загрузке
         window.addEventListener('load', () => {
             testConnection();
+            updateAuthStatus(); // Проверяем авторизацию при загрузке
             
+            // Временный тестовый запрос к API для проверки данных о сеансах
+            console.log('🔍 ВРЕМЕННЫЙ ТЕСТ API: Проверяем доступность данных о сеансах...');
+            makeAuthorizedRequest(`${API_BASE}/sessions`)
+                .then(response => {
+                    console.log('📡 API ОТВЕТ (СЕАНСЫ): Статус:', response.status, 'Текст статуса:', response.statusText);
+                    if (!response.ok) {
+                        throw new Error(`Ошибка API: ${response.status} ${response.statusText}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('✅ API УСПЕХ (СЕАНСЫ): Данные о сеансах получены:', data.length, 'сеансов');
+                    if (data.length > 0) {
+                        console.log('🔍 ВРЕМЕННЫЙ ТЕСТ API: Проверяем данные о билетах для первого сеанса ID:', data[0].id);
+                        makeAuthorizedRequest(`${API_BASE}/sessions/${data[0].id}/tickets`)
+                            .then(ticketResponse => {
+                                console.log('📡 API ОТВЕТ (БИЛЕТЫ): Статус:', ticketResponse.status, 'Текст статуса:', ticketResponse.statusText);
+                                if (!ticketResponse.ok) {
+                                    throw new Error(`Ошибка API билетов: ${ticketResponse.status} ${ticketResponse.statusText}`);
+                                }
+                                return ticketResponse.json();
+                            })
+                            .then(tickets => {
+                                console.log('✅ API УСПЕХ (БИЛЕТЫ): Данные о билетах получены:', tickets);
+                            })
+                            .catch(ticketError => {
+                                console.error('❌ API ОШИБКА (БИЛЕТЫ):', ticketError.message);
+                            });
+                    }
+                })
+                .catch(error => {
+                    console.error('❌ API ОШИБКА (СЕАНСЫ):', error.message);
+                });
+            
+            // ВРЕМЕННО ОТКЛЮЧЕН Service Worker для отладки
+            console.log('Service Worker временно отключен для отладки');
+            /*
             // Регистрация Service Worker
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('sw.js')
                     .then(() => console.log('✅ Service Worker зарегистрирован'))
                     .catch(err => console.log('❌ Ошибка SW:', err));
             }
+            */
+        });
+
+        // Глобальная защита от ошибок
+        window.addEventListener('error', (event) => {
+            console.error('🚨 ГЛОБАЛЬНАЯ ОШИБКА:', event.error);
+            console.error('📁 Файл:', event.filename);
+            console.error('📍 Строка:', event.lineno);
+            console.error('📍 Колонка:', event.colno);
+            console.error('📄 Сообщение:', event.message);
         });
 
         // Управление экранами
         function showScreen(screenName) {
-            // Скрыть все экраны
-            document.querySelectorAll('.screen').forEach(screen => {
-                screen.classList.remove('active');
-            });
+            console.log('🔄 ПЕРЕХОД: Переключение на экран:', screenName);
+            console.log('🔍 DEBUG: event объект:', event);
+            console.log('🔍 DEBUG: event.target:', event && event.target);
             
-            // Обновить навигацию
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.classList.remove('active');
-            });
-            
-            // Показать выбранный экран
-            document.getElementById(screenName + 'Screen').classList.add('active');
-            event.target.closest('.nav-item').classList.add('active');
-            
-            // Загрузить данные для экрана
-            switch(screenName) {
-                case 'movies':
-                    loadMovies();
-                    break;
-                case 'sessions':
-                    loadSessions();
-                    break;
+            try {
+                // Скрыть все экраны
+                document.querySelectorAll('.screen').forEach(screen => {
+                    screen.classList.remove('active');
+                });
+                
+                // Обновить навигацию
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                
+                // Показать выбранный экран
+                const targetScreen = document.getElementById(screenName + 'Screen');
+                if (targetScreen) {
+                    targetScreen.classList.add('active');
+                    console.log('✅ ЭКРАН: Активирован экран', screenName + 'Screen');
+                } else {
+                    console.log('❌ ОШИБКА: Экран не найден', screenName + 'Screen');
+                }
+                
+                // Найти соответствующий элемент навигации и активировать его
+                const navItems = document.querySelectorAll('.nav-item');
+                console.log('🔍 DEBUG: Найдено nav-item элементов:', navItems.length);
+                
+                navItems.forEach((item, index) => {
+                    const navLabels = ['home', 'movies', 'sessions', 'login'];
+                    if (navLabels[index] === screenName) {
+                        item.classList.add('active');
+                        console.log('✅ НАВИГАЦИЯ: Активирован элемент навигации', index);
+                    }
+                });
+                
+                // Загрузить данные для экрана
+                switch(screenName) {
+                    case 'movies':
+                        loadMovies();
+                        break;
+                    case 'sessions':
+                        loadSessions();
+                        break;
+                }
+            } catch (error) {
+                console.error('❌ ОШИБКА в showScreen:', error);
+                console.error('📍 Stack trace:', error.stack);
             }
         }
 
         // API функции
+        
+        // Функция для авторизованных запросов
+        async function makeAuthorizedRequest(url, options = {}) {
+            const token = localStorage.getItem('token');
+            const headers = {
+                'Content-Type': 'application/json',
+                ...options.headers
+            };
+            
+            if (token) {
+                headers.Authorization = `Bearer ${token}`;
+            }
+            
+            return fetch(url, {
+                ...options,
+                headers
+            });
+        }
+        
         async function testConnection() {
             updateConnectionStatus('connecting');
             
@@ -537,7 +923,7 @@
             showLoading(true);
             
             try {
-                const response = await fetch(`${API_BASE}/movies`);
+                const response = await makeAuthorizedRequest(`${API_BASE}/movies`);
                 const movies = await response.json();
                 
                 const container = document.getElementById('moviesContainer');
@@ -569,8 +955,11 @@
             showLoading(true);
             
             try {
-                const response = await fetch(`${API_BASE}/sessions`);
+                const response = await makeAuthorizedRequest(`${API_BASE}/sessions`);
                 const sessions = await response.json();
+                
+                // Сохраняем данные для бронирования
+                allSessions = sessions;
                 
                 const container = document.getElementById('sessionsContainer');
                 container.innerHTML = '';
@@ -578,12 +967,48 @@
                 sessions.forEach(session => {
                     const sessionCard = document.createElement('div');
                     sessionCard.className = 'feature-card';
+                    const availableSeats = session.available_seats || 0;
+                    const totalSeats = session.total_seats || session.hall?.capacity || 0;
+                    const seatStatus = availableSeats > 0 ? 
+                        `<p style="color: #4CAF50;">🪑 Свободно: ${availableSeats}/${totalSeats} мест</p>` :
+                        `<p style="color: #f44336;">🚫 Мест нет (${totalSeats} мест)</p>`;
+                    
                     sessionCard.innerHTML = `
                         <h4>${session.movie?.title || 'Фильм'}</h4>
                         <p>🕒 ${new Date(session.start_time).toLocaleString('ru')}</p>
                         <p>💰 ${session.price} ₽</p>
-                        <p>🎪 Зал ${session.hall?.name || session.hall_id}</p>
+                        <p>🎪 ${session.hall?.name || session.hall_id}</p>
+                        ${seatStatus}
                     `;
+                    
+                    // Создаем кнопку бронирования отдельно
+                    if (availableSeats > 0) {
+                        const bookingButton = document.createElement('button');
+                        bookingButton.className = 'action-button';
+                        bookingButton.style.margin = '10px 0';
+                        bookingButton.innerHTML = `
+                            <span>🎫</span>
+                            <span>Забронировать билет</span>
+                        `;
+                        bookingButton.onclick = () => {
+                            console.log('🖱️ КЛИК: Нажата кнопка бронирования для сеанса ID:', session.id);
+                            openBookingModal(session.id);
+                        };
+                        sessionCard.appendChild(bookingButton);
+                    } else {
+                        const disabledButton = document.createElement('button');
+                        disabledButton.className = 'action-button';
+                        disabledButton.style.margin = '10px 0';
+                        disabledButton.style.opacity = '0.5';
+                        disabledButton.style.cursor = 'not-allowed';
+                        disabledButton.disabled = true;
+                        disabledButton.innerHTML = `
+                            <span>🚫</span>
+                            <span>Мест нет</span>
+                        `;
+                        sessionCard.appendChild(disabledButton);
+                    }
+                    
                     container.appendChild(sessionCard);
                 });
                 
@@ -596,35 +1021,53 @@
         }
 
         async function performLogin() {
-            const username = document.getElementById('loginUsername').value;
-            const password = document.getElementById('loginPassword').value;
+    const username = document.getElementById('loginUsername').value;
+    const password = document.getElementById('loginPassword').value;
+    
+    if (!username || !password) {
+        showNotification('❌ Введите логин и пароль', 'error');
+        return;
+    }
+    
+    showLoading(true);
+    
+    try {
+        const formData = new URLSearchParams();
+        formData.append('username', username);
+        formData.append('password', password);
+
+        const response = await fetch(`${API_BASE}/auth/login`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            authToken = data.access_token;
+            localStorage.setItem('token', authToken);
             
-            if (!username || !password) {
-                showNotification('❌ Введите логин и пароль', 'error');
-                return;
-            }
-            
-            showLoading(true);
-            
-            try {
-                const response = await fetch(`${API_BASE}/auth/login`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ username, password })
-                });
-                
-                const data = await response.json();
-                
-                if (response.ok) {
-                    authToken = data.access_token;
-                    localStorage.setItem('authToken', authToken);
-                    showNotification(`✅ Добро пожаловать, ${username}!`, 'success');
+                    
+                    // Получаем данные пользователя
+                    try {
+                        const userResponse = await makeAuthorizedRequest(`${API_BASE}/auth/me`);
+                        const userData = await userResponse.json();
+                        localStorage.setItem('user', JSON.stringify(userData));
+                        
+                        showNotification(`✅ Добро пожаловать, ${userData.username}! (${userData.role})`, 'success');
+                    } catch (e) {
+                        showNotification(`✅ Добро пожаловать, ${username}!`, 'success');
+                    }
                     
                     // Очистить поля
                     document.getElementById('loginUsername').value = '';
                     document.getElementById('loginPassword').value = '';
+                    
+                    // Обновить интерфейс
+                    updateAuthStatus();
                 } else {
                     showNotification('❌ Неверные учетные данные', 'error');
                 }
@@ -633,6 +1076,73 @@
             }
             
             showLoading(false);
+        }
+        
+        // Функция для обновления статуса авторизации
+        function updateAuthStatus() {
+            const token = localStorage.getItem('token');
+            const user = localStorage.getItem('user');
+            const navProfileItem = document.querySelector('.nav-item:last-child .nav-label');
+            
+            if (token && user) {
+                const userData = JSON.parse(user);
+                
+                // Обновляем текст в навигации
+                navProfileItem.textContent = userData.username;
+                
+                // Добавляем индикатор авторизации в заголовок
+                const appName = document.querySelector('.header h1');
+                if (appName && !appName.querySelector('.auth-indicator')) {
+                    const authIndicator = document.createElement('span');
+                    authIndicator.className = 'auth-indicator';
+                    authIndicator.innerHTML = ` <span style="color: #4CAF50;">●</span>`;
+                    authIndicator.title = `${userData.username} (${userData.role})`;
+                    appName.appendChild(authIndicator);
+                }
+                
+                // Показываем приветствие на экране логина
+                const loginScreen = document.getElementById('loginScreen');
+                let welcomeMessage = loginScreen.querySelector('.welcome-message');
+                if (!welcomeMessage) {
+                    welcomeMessage = document.createElement('div');
+                    welcomeMessage.className = 'welcome-message';
+                    loginScreen.insertBefore(welcomeMessage, loginScreen.firstChild);
+                }
+                welcomeMessage.innerHTML = `
+                    <div class="feature-card" style="background: rgba(76, 175, 80, 0.2); border-color: rgba(76, 175, 80, 0.5);">
+                        <h3>✅ Вы авторизованы!</h3>
+                        <p><strong>Пользователь:</strong> ${userData.username}</p>
+                        <p><strong>Роль:</strong> ${userData.role}</p>
+                        <p><strong>Email:</strong> ${userData.email}</p>
+                    </div>
+                `;
+                
+                console.log('Авторизован:', userData.username, userData.role);
+            } else {
+                // Пользователь не авторизован
+                navProfileItem.textContent = 'Профиль';
+                
+                // Убираем индикатор авторизации
+                const authIndicator = document.querySelector('.auth-indicator');
+                if (authIndicator) {
+                    authIndicator.remove();
+                }
+                
+                // Убираем приветствие
+                const welcomeMessage = document.querySelector('.welcome-message');
+                if (welcomeMessage) {
+                    welcomeMessage.remove();
+                }
+            }
+        }
+        
+        // Функция выхода
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            authToken = null;
+            showNotification('👋 Вы вышли из системы', 'success');
+            updateAuthStatus();
         }
 
         // Вспомогательные функции
@@ -678,6 +1188,245 @@
 
         function showLogin() {
             showScreen('login');
+        }
+
+        function testAuthCompat() {
+            const token = localStorage.getItem('token');
+            const user = localStorage.getItem('user');
+            
+            if (!token) {
+                showNotification('❌ Нет токена авторизации. Войдите в систему.', 'error');
+                return;
+            }
+            
+            showLoading(true);
+            
+            // Проверяем токен через API
+            makeAuthorizedRequest(`${API_BASE}/auth/me`)
+                .then(response => response.json())
+                .then(userData => {
+                    showNotification(`✅ Токен действителен! Пользователь: ${userData.username} (${userData.role})`, 'success');
+                    console.log('Данные пользователя:', userData);
+                    
+                    // Обновляем сохраненные данные пользователя
+                    localStorage.setItem('user', JSON.stringify(userData));
+                })
+                .catch(error => {
+                    showNotification('❌ Токен недействителен или истек', 'error');
+                    console.error('Ошибка проверки токена:', error);
+                    
+                    // Очищаем недействительный токен
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    authToken = null;
+                })
+                .finally(() => {
+                    showLoading(false);
+                });
+        }
+
+        // === ФУНКЦИИ БРОНИРОВАНИЯ БИЛЕТОВ ===
+        
+        // Открытие модального окна бронирования
+        async function openBookingModal(sessionId) {
+            console.log('🎫 БРОНИРОВАНИЕ: Функция openBookingModal вызвана с sessionId:', sessionId);
+            const token = localStorage.getItem('token');
+            if (!token) {
+                showNotification('❌ Для бронирования необходимо войти в систему', 'error');
+                showScreen('login');
+                return;
+            }
+            if (allSessions.length === 0) {
+                await loadSessionsData();
+            }
+            currentSession = allSessions.find(s => s.id === sessionId);
+            if (!currentSession) {
+                showNotification('❌ Сеанс не найден', 'error');
+                return;
+            }
+            document.getElementById('bookingSessionInfo').innerHTML = `
+                <h4>${currentSession.movie?.title || 'Фильм'}</h4>
+                <p>🕒 ${new Date(currentSession.start_time).toLocaleString('ru')}</p>
+                <p>💰 ${currentSession.price} ₽ за место</p>
+                <p>🎪 ${currentSession.hall?.name || `Зал ${currentSession.hall_id}`}</p>
+            `;
+            let occupiedSeats = [];
+            try {
+                const response = await makeAuthorizedRequest(`${API_BASE}/sessions/${currentSession.id}/tickets`);
+                if (response.ok) {
+                    const tickets = await response.json();
+                    occupiedSeats = tickets.map(t => Number(t.seat_number));
+                }
+            } catch (e) {
+                console.error('Ошибка получения занятых мест:', e);
+            }
+            generateSeatMap(occupiedSeats);
+            const modal = document.getElementById('bookingModal');
+            modal.style.display = 'flex';
+        }
+        
+        // Переключение выбора места
+        function toggleSeat(seatNumber) {
+            const seatButton = document.querySelector(`[data-seat="${seatNumber}"]`);
+            
+            if (selectedSeats.includes(seatNumber)) {
+                // Убираем место из выбранных
+                selectedSeats = selectedSeats.filter(s => s !== seatNumber);
+                seatButton.classList.remove('selected');
+                seatButton.classList.add('free');
+            } else {
+                // Добавляем место в выбранные
+                selectedSeats.push(seatNumber);
+                seatButton.classList.remove('free');
+                seatButton.classList.add('selected');
+            }
+            
+            updateBookingSummary();
+        }
+        
+        // Обновление сводки бронирования
+        function updateBookingSummary() {
+            const summaryDiv = document.getElementById('bookingSummary');
+            const confirmBtn = document.getElementById('confirmBookingBtn');
+            
+            if (selectedSeats.length === 0) {
+                summaryDiv.style.display = 'none';
+                confirmBtn.disabled = true;
+                return;
+            }
+            
+            const totalPrice = selectedSeats.length * currentSession.price;
+            
+            document.getElementById('selectedSeatsText').textContent = selectedSeats.sort((a, b) => a - b).join(', ');
+            document.getElementById('totalPriceText').textContent = totalPrice;
+            
+            summaryDiv.style.display = 'block';
+            confirmBtn.disabled = false;
+        }
+        
+        // Подтверждение бронирования
+        async function confirmBooking() {
+            if (!currentSession || selectedSeats.length === 0) {
+                showNotification('❌ Выберите места для бронирования', 'error');
+                return;
+            }
+            
+            showLoading(true);
+            
+            try {
+                // Проверяем доступность мест перед бронированием
+                const responseCheck = await makeAuthorizedRequest(`${API_BASE}/sessions/${currentSession.id}/tickets`);
+                console.log('📡 ПРОВЕРКА ДОСТУПНОСТИ: Статус ответа от API:', responseCheck.status, 'Текст статуса:', responseCheck.statusText);
+                if (!responseCheck.ok) {
+                    const checkErrorText = await responseCheck.text();
+                    throw new Error(`Ошибка проверки доступности мест: ${responseCheck.status} ${responseCheck.statusText}. Подробности: ${checkErrorText}`);
+                }
+                const tickets = await responseCheck.json();
+                const occupiedSeats = tickets.map(ticket => ticket.seat_number);
+                const unavailableSeats = selectedSeats.filter(seat => occupiedSeats.includes(seat));
+                
+                if (unavailableSeats.length > 0) {
+                    showNotification(`❌ Места ${unavailableSeats.join(', ')} уже забронированы`, 'error');
+                    showLoading(false);
+                    return;
+                }
+                
+                const bookingData = {
+                    session_id: currentSession.id,
+                    seat_numbers: selectedSeats,
+                    total_price: selectedSeats.length * currentSession.price
+                };
+                console.log('📤 ОТПРАВКА БРОНИРОВАНИЯ: Данные запроса на бронирование:', bookingData);
+                const response = await makeAuthorizedRequest(`${API_BASE}/tickets`, {
+                    method: 'POST',
+                    body: JSON.stringify(bookingData)
+                });
+                console.log('📡 ОТВЕТ НА БРОНИРОВАНИЕ: Статус ответа от API:', response.status, 'Текст статуса:', response.statusText);
+                
+                if (response.ok) {
+                    const booking = await response.json();
+                    showNotification(`🎉 Билет забронирован! Места: ${selectedSeats.join(', ')}, Сумма: ${selectedSeats.length * currentSession.price} ₽`, 'success');
+                    closeBookingModal();
+                    
+                    // Обновляем список сеансов
+                    if (document.getElementById('sessionsScreen').classList.contains('active')) {
+                        loadSessions();
+                    }
+                } else {
+                    const errorText = await response.text();
+                    console.error('❌ ОШИБКА БРОНИРОВАНИЯ: Подробности ошибки от сервера:', errorText);
+                    showNotification(`❌ Ошибка бронирования: ${errorText || 'Неизвестная ошибка'}`, 'error');
+                }
+            } catch (error) {
+                console.error('❌ ОШИБКА БРОНИРОВАНИЯ: Ошибка соединения с сервером:', error.message);
+                showNotification('❌ Ошибка соединения с сервером: ' + error.message, 'error');
+            }
+            
+            showLoading(false);
+        }
+        
+        // Загрузка данных сеансов для бронирования
+        async function loadSessionsData() {
+            try {
+                const response = await makeAuthorizedRequest(`${API_BASE}/sessions`);
+                allSessions = await response.json();
+            } catch (error) {
+                console.error('Error loading sessions data:', error);
+                allSessions = [];
+            }
+        }
+
+        // Генерация схемы мест
+        function generateSeatMap(occupiedSeats = []) {
+            const seatMapContainer = document.getElementById('seatMap');
+            seatMapContainer.innerHTML = '';
+            if (!currentSession) {
+                seatMapContainer.innerHTML = '<p>Ошибка загрузки схемы мест</p>';
+                return;
+            }
+            const hall = currentSession.hall || { name: `Зал ${currentSession.hall_id || 1}`, capacity: currentSession.total_seats || 100 };
+            const totalSeats = currentSession.total_seats || hall.capacity || 100;
+            const rows = Math.ceil(totalSeats / 10);
+            const seatsPerRow = Math.ceil(totalSeats / rows);
+            for (let row = 1; row <= rows; row++) {
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'seat-row';
+                const rowNumber = document.createElement('div');
+                rowNumber.className = 'row-number';
+                rowNumber.textContent = row;
+                rowDiv.appendChild(rowNumber);
+                for (let seat = 1; seat <= seatsPerRow; seat++) {
+                    const seatNumber = (row - 1) * seatsPerRow + seat;
+                    if (seatNumber > totalSeats) break;
+                    const seatButton = document.createElement('button');
+                    seatButton.className = 'seat';
+                    seatButton.textContent = seatNumber;
+                    seatButton.setAttribute('data-seat', seatNumber);
+                    if (occupiedSeats.includes(seatNumber)) {
+                        seatButton.classList.add('occupied');
+                        seatButton.disabled = true;
+                        seatButton.style.background = '#f44336';
+                        seatButton.style.color = 'white';
+                        seatButton.title = 'Занято';
+                    } else {
+                        seatButton.classList.add('free');
+                        seatButton.onclick = () => {
+                            toggleSeat(seatNumber);
+                        };
+                    }
+                    rowDiv.appendChild(seatButton);
+                }
+                seatMapContainer.appendChild(rowDiv);
+            }
+            updateBookingSummary(); // Обновить сводку после генерации
+            console.log(`✅ ГЕНЕРАЦИЯ ЗАВЕРШЕНА: Создано ${rows} рядов с ${seatsPerRow} местами`);
+        }
+
+        function closeBookingModal() {
+            document.getElementById('bookingModal').style.display = 'none';
+            currentSession = null;
+            selectedSeats = [];
+            updateBookingSummary();
         }
     </script>
 </body>

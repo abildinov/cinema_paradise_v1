@@ -31,8 +31,12 @@ const LoginModal = ({ isOpen, onClose, onSuccess }) => {
             }
             
             if (onSuccess) {
+                // Генерируем событие для обновления Header
+                window.dispatchEvent(new CustomEvent('loginSuccess'));
                 onSuccess(response.user || response);
             } else {
+                // Генерируем событие для обновления Header
+                window.dispatchEvent(new CustomEvent('loginSuccess'));
                 onClose();
                 window.location.reload();
             }
