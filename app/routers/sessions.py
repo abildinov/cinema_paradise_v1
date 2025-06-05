@@ -4,7 +4,7 @@ from typing import Optional
 from datetime import datetime
 
 from ..database import get_db
-from ..models import Session as SessionModel, Movie as MovieModel
+from ..models import Session as SessionModel, Movie as MovieModel, Ticket
 from ..schemas import Session as SessionSchema, SessionCreate, SessionUpdate, SessionList
 
 router = APIRouter()

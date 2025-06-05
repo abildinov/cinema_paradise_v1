@@ -312,6 +312,7 @@ async def get_my_tickets(authorization: str = Header(None), db: Session = Depend
             "session_id": ticket.session_id,
             "seat_numbers": [ticket.seat_number],
             "seat_number": ticket.seat_number,
+            "row_number": ticket.seat_row,
             "total_price": float(ticket.final_price),
             "price": float(ticket.price),
             "user": username,
@@ -320,6 +321,7 @@ async def get_my_tickets(authorization: str = Header(None), db: Session = Depend
             "booking_time": ticket.booking_time.isoformat(),
             "status": ticket.status,
             "is_paid": ticket.is_paid,
+            "is_confirmed": ticket.is_paid,
             "session": {
                 "id": session.id,
                 "movie": {"title": movie.title, "id": movie.id},
@@ -411,7 +413,22 @@ async def create_ticket(ticket_data: dict, authorization: str = Header(None), db
     import uuid
     tickets = []
     base_price_per_seat = float(session.base_price) / len(seat_numbers) if total_price is None else float(total_price) / len(seat_numbers)
+    
+    # Получаем конфигурацию зала для правильного расчета рядов
+    seats_per_row = 10  # По умолчанию 10 мест в ряду
+    if hasattr(hall, 'seats_per_row') and hall.seats_per_row:
+        seats_per_row = hall.seats_per_row
+    else:
+        # Вычисляем seats_per_row на основе общего количества мест и рядов
+        total_seats = hall.total_seats
+        estimated_rows = max(1, int((total_seats / 10) + 0.5))  # Примерно 10 мест в ряду
+        seats_per_row = max(1, total_seats // estimated_rows)
+    
     for seat_number in seat_numbers:
+        # Вычисляем ряд на основе номера места
+        seat_row = ((seat_number - 1) // seats_per_row) + 1
+        seat_in_row = ((seat_number - 1) % seats_per_row) + 1
+        
         # Определяем тип места и цену (упрощенная логика)
         seat_type = "standard"
         seat_price = base_price_per_seat
@@ -426,7 +443,7 @@ async def create_ticket(ticket_data: dict, authorization: str = Header(None), db
         ticket = Ticket(
             user_id=user.id,
             session_id=session_id,
-            seat_row=1,  # Упрощенно, в реальном приложении нужно вычислять ряд
+            seat_row=seat_row,  # Правильно вычисленный ряд
             seat_number=seat_number,
             seat_type=seat_type,
             price=seat_price,
@@ -437,7 +454,7 @@ async def create_ticket(ticket_data: dict, authorization: str = Header(None), db
         )
         db.add(ticket)
         tickets.append(ticket)
-        print(f"Билет создан: место {seat_number}, тип {seat_type}, цена {seat_price}")
+        print(f"Билет создан: ряд {seat_row}, место {seat_number} (в ряду: {seat_in_row}), тип {seat_type}, цена {seat_price}")
     
     # Обновляем количество доступных мест в сеансе
     session.available_seats -= len(seat_numbers)
@@ -518,6 +535,7 @@ async def get_admin_tickets(authorization: str = Header(None), db: Session = Dep
             "session_id": ticket.session_id,
             "seat_numbers": [ticket.seat_number],
             "seat_number": ticket.seat_number,
+            "row_number": ticket.seat_row,
             "total_price": float(ticket.final_price),
             "price": float(ticket.price),
             "user": user.username,
@@ -527,6 +545,7 @@ async def get_admin_tickets(authorization: str = Header(None), db: Session = Dep
             "purchase_date": ticket.booking_time.isoformat(),
             "status": ticket.status,
             "is_paid": ticket.is_paid,
+            "is_confirmed": ticket.is_paid,
             "customer_phone": user.phone or "",
             "session": {
                 "id": session.id,
@@ -559,6 +578,40 @@ async def get_tickets_for_session(session_id: int, db: Session = Depends(get_db)
         "status": ticket.status,
         "is_paid": ticket.is_paid
     } for ticket in tickets]
+
+@app.post("/admin/update_seat_rows")
+async def update_seat_rows(authorization: str = Header(None), db: Session = Depends(get_db)):
+    """Обновить seat_row для всех существующих билетов"""
+    if not authorization:
+        raise HTTPException(status_code=401, detail="Токен не предоставлен")
+    
+    try:
+        token = authorization.split(" ")[1] if authorization.startswith("Bearer ") else authorization
+    except:
+        raise HTTPException(status_code=401, detail="Неверный формат токена")
+    
+    username = token.replace("demo_token_", "")
+    user = db.query(User).filter(User.username == username).first()
+    if not user or user.role != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Доступ запрещен")
+    
+    tickets = db.query(Ticket).all()
+    updated_count = 0
+    for ticket in tickets:
+        session = db.query(Session).filter(Session.id == ticket.session_id).first()
+        if session:
+            hall = db.query(Hall).filter(Hall.id == session.hall_id).first()
+            if hall:
+                seats_per_row = hall.seats_per_row if hall.seats_per_row else 10
+                new_row = ((ticket.seat_number - 1) // seats_per_row) + 1
+                if ticket.seat_row != new_row:
+                    ticket.seat_row = new_row
+                    updated_count += 1
+    db.commit()
+    return {
+        "message": "Обновление seat_row завершено",
+        "updated_tickets": updated_count
+    }
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000) 

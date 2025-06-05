@@ -14,6 +14,7 @@ const UserProfile = ({ user, onClose }) => {
         try {
             setLoading(true);
             const response = await window.api.getUserTickets();
+            console.log('🎫 UserProfile: Полученные билеты от API:', response);
             setTickets(response || []);
         } catch (error) {
             console.error('Error loading user tickets:', error);
@@ -165,7 +166,8 @@ const UserProfile = ({ user, onClose }) => {
                             className: 'text-gray-500 mt-2'
                         }, 'Забронируйте билет на любой фильм!')
                     ) : React.createElement('div', {
-                        className: 'space-y-4'
+                        className: 'space-y-4',
+                        key: `tickets-${tickets.length}-${Date.now()}`
                     },
                         tickets.map(ticket => 
                             React.createElement('div', {
@@ -197,8 +199,8 @@ const UserProfile = ({ user, onClose }) => {
                                         }, '📅 Дата и время:'),
                                         React.createElement('br'),
                                         React.createElement('span', {
-                                            className: 'font-medium'
-                                        }, formatDate(ticket.session?.start_time))
+                                            className: 'font-medium text-gray-900'
+                                        }, ticket.session?.start_time ? formatDate(ticket.session.start_time) : 'Не указано')
                                     ),
                                     React.createElement('div', null,
                                         React.createElement('span', {
@@ -206,8 +208,10 @@ const UserProfile = ({ user, onClose }) => {
                                         }, '🪑 Место:'),
                                         React.createElement('br'),
                                         React.createElement('span', {
-                                            className: 'font-medium'
-                                        }, ticket.seat_number ? `Ряд ${ticket.row_number}, Место ${ticket.seat_number}` : 'Не указано')
+                                            className: 'font-medium text-gray-900'
+                                        }, (ticket.seat_number !== undefined && ticket.seat_number !== null) ? 
+                                            `Ряд ${ticket.row_number || 'N/A'}, Место ${ticket.seat_number}` : 
+                                            'Не указано')
                                     ),
                                     React.createElement('div', null,
                                         React.createElement('span', {
@@ -215,10 +219,12 @@ const UserProfile = ({ user, onClose }) => {
                                         }, '💰 Стоимость:'),
                                         React.createElement('br'),
                                         React.createElement('span', {
-                                            className: 'font-medium text-green-600'
+                                            className: 'font-medium text-green-700'
                                         }, `${ticket.price || 0} ₽`)
                                     )
-                                )
+                                ),
+                                console.log('📅 Данные о сеансе:', ticket.session),
+                                console.log('🪑 Данные о месте:', { seat_number: ticket.seat_number, row_number: ticket.row_number })
                             )
                         )
                     )

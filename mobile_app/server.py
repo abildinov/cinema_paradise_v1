@@ -2,7 +2,7 @@ import http.server
 import socketserver
 import os
 
-PORT = 3002
+PORT = 3001
 
 class NoCacheHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
     def end_headers(self):
@@ -13,7 +13,7 @@ class NoCacheHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         super().end_headers()
     
     def do_GET(self):
-        # Если запрашивается корень, перенаправляем на index-fresh.html
+        # Если запрашивается корень, перенаправляем на index.html
         if self.path == '/':
             self.path = '/index.html'
         super().do_GET()

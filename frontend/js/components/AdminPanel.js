@@ -308,21 +308,21 @@ const AdminPanel = ({ user, onClose }) => {
                 activeTab === 'tickets' ? (() => {
                     console.log('🔧 AdminPanel: Рендеринг билетов, количество:', tickets.length, 'билеты:', tickets);
                     return React.createElement('div', null,
-                        React.createElement('h3', {
-                            className: 'text-lg font-semibold mb-4 text-gray-800'
-                        }, '🎫 Все билеты'),
-                        tickets.length === 0 ? React.createElement('div', {
-                            className: 'text-center py-8'
-                        },
-                            React.createElement('div', {
-                                className: 'text-6xl mb-4'
-                            }, '🎫'),
-                            React.createElement('p', {
-                                className: 'text-gray-600'
-                            }, 'Билетов пока нет')
-                        ) : React.createElement('div', {
+                    React.createElement('h3', {
+                        className: 'text-lg font-semibold mb-4 text-gray-800'
+                    }, '🎫 Все билеты'),
+                    tickets.length === 0 ? React.createElement('div', {
+                        className: 'text-center py-8'
+                    },
+                        React.createElement('div', {
+                            className: 'text-6xl mb-4'
+                        }, '🎫'),
+                        React.createElement('p', {
+                            className: 'text-gray-600'
+                        }, 'Билетов пока нет')
+                    ) : React.createElement('div', {
                             className: 'overflow-x-auto'
-                        },
+                    },
                             React.createElement('table', {
                                 className: 'min-w-full text-sm border border-gray-300 rounded-lg bg-white'
                             },
@@ -362,7 +362,7 @@ const AdminPanel = ({ user, onClose }) => {
                                             React.createElement('td', { className: 'px-3 py-2 border-b text-gray-900' }, date ? new Date(date).toLocaleString('ru-RU') : '—'),
                                             React.createElement('td', { className: 'px-3 py-2 border-b text-gray-900' }, email),
                                             React.createElement('td', { className: 'px-3 py-2 border-b' },
-                                                React.createElement('span', {
+                                        React.createElement('span', {
                                                     className: `px-2 py-1 rounded-full text-xs font-medium ${ticket.is_paid ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`
                                                 }, ticket.is_paid ? 'Оплачен' : 'Ожидает')
                                             )
